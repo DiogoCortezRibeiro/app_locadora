@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Marca;
+use App\Repositories\MarcaRepository;
 use Illuminate\Http\Request;
 
 class MarcaController extends Controller
@@ -20,9 +21,21 @@ class MarcaController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        return $this->marca->with('modelos')->get();
+        $marcaRepository = new MarcaRepository($this->marca, 'modelos');
+        
+        if($request->has('atributos')) {
+            $marcaRepository->selectAtributosSelecionados($request->get('atributos'));
+        }else {
+            $marcaRepository->selectTodosAtributos();
+        }
+
+        if($request->has('filtro')) {
+            $marcaRepository->filtrarQuery($request->filtro);
+        }
+
+        return response()->json($marcaRepository->getResultado(), 200);
     }
 
     /**
